@@ -79,6 +79,7 @@ def _parse_result(li):
     title = li.select_one('div.title a').string.strip()
     price = _parse_price(li.select_one('div.price .value .amount').string)
     url = li.select_one('.title .href-link')['href']
+    url = 'http://www.gumtree.pl' + url
     # Image - it may be there, it may not
     if 'pictures' in li['class']:
         if 'data-src' in li.select_one('.thumb img').attrs:
@@ -106,20 +107,13 @@ def _parse_result(li):
 
 
 def _prepare_query(result):
-    """I'm pretty sure there's something in Python for doing that better way
-
-    Nonetheless, this prepares tinyDB query by combining all WHERE params.
-    """
-    builder = Query()
-    query = (builder[Result._fields[0]] == result[0])
-    for i, field in enumerate(Result._fields[1:-1], 1):
-        query &= (builder[field] == result[i])
-    return query
+    return Query().url == result.url
 
 
 def _to_dict(result):
     output = result._asdict()
     output['created_at'] = output['created_at'].isoformat()
+    output['seen'] = False
     return output
 
 
@@ -135,13 +129,15 @@ def scrap(url):
     results = []
     for li in soup.select('li.result'):
         results.append(_parse_result(li))
-    # Skip those that are already there
+    # Skip those that are already there - single result found will break out
+    # of the loop
     valid = []
     for result in results:
-        in_db = db.search(_prepare_query(result))
-        if not in_db:
-            db.insert(_to_dict(result))
-            valid.append(result)
+        if db.contains(_prepare_query(result)):
+            break
+        db.insert(_to_dict(result))
+        valid.append(result)
+    db.close()
     return valid
 
 
@@ -163,6 +159,7 @@ if __name__ == '__main__':
             for i in range(REFRESH_SECONDS, 0, -1):
                 _pretty_print('Sleeping. Next refresh in {} seconds'.format(i))
                 time.sleep(1)
+            print()
         except KeyboardInterrupt:
             print('Exiting.')
             break
