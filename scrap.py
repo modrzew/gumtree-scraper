@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta
 from collections import namedtuple
+import os.path
+import pickle
 
 from bs4 import BeautifulSoup
 import dateutil
 import requests
 
-## Configurable things
+# CONFIGURABLE THINGS
 # Local equivalents of "minutes" and "hours"
 TIMEDELTA_HOURS = ('godz', 'hour')
 TIMEDELTA_MINS = ('min',)
@@ -17,6 +19,20 @@ Result = namedtuple(
 )
 # Variables
 LAST_RUN_FILENAME = '.lastrun'
+DB_FILENAME = '.db'
+
+
+def _read_db():
+    if not os.path.exists(DB_FILENAME):
+        return []
+    with open(DB_FILENAME, 'rb') as f:
+        result = pickle.load(f)
+    return result
+
+
+def _save_db(db):
+    with open(DB_FILENAME, 'wb') as f:
+        pickle.dump(db, f)
 
 
 def _read_last_run():
@@ -99,7 +115,21 @@ def _parse_result(li):
     )
 
 
+def _are_results_equal(a, b):
+    """Function is necessary, because created_at will be different"""
+    return a[:-1] == b[:-1]
+
+
+def _remove_duplicates(entries, db):
+    for i, entry in enumerate(entries):
+        for from_db in db:
+            if _are_results_equal(entry, from_db):
+                return entries[:i]
+    return entries
+
+
 def scrap(url):
+    db = _read_db()
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     # Remove promoted section
@@ -110,6 +140,10 @@ def scrap(url):
     results = []
     for li in soup.select('li.result'):
         results.append(_parse_result(li))
+    # Skip those that are already there
+    results = _remove_duplicates(results, db)
+    db += results
+    _save_db(db)
     return results
 
 
