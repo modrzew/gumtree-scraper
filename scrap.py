@@ -1,11 +1,10 @@
 from datetime import datetime, timedelta
 from collections import namedtuple
-import os.path
-import pickle
 import sys
 import time
 
 from bs4 import BeautifulSoup
+from tinydb import TinyDB, Query
 import dateutil
 import requests
 
@@ -24,19 +23,6 @@ Result = namedtuple(
 LAST_RUN_FILENAME = '.lastrun'
 DB_FILENAME = '.db'
 REFRESH_SECONDS = 300
-
-
-def _read_db():
-    if not os.path.exists(DB_FILENAME):
-        return []
-    with open(DB_FILENAME, 'rb') as f:
-        result = pickle.load(f)
-    return result
-
-
-def _save_db(db):
-    with open(DB_FILENAME, 'wb') as f:
-        pickle.dump(db, f)
 
 
 def _read_last_run():
@@ -119,21 +105,26 @@ def _parse_result(li):
     )
 
 
-def _are_results_equal(a, b):
-    """Function is necessary, because created_at will be different"""
-    return a[:-1] == b[:-1]
+def _prepare_query(result):
+    """I'm pretty sure there's something in Python for doing that better way
+
+    Nonetheless, this prepares tinyDB query by combining all WHERE params.
+    """
+    builder = Query()
+    query = (builder[Result._fields[0]] == result[0])
+    for i, field in enumerate(Result._fields[1:-1], 1):
+        query &= (builder[field] == result[i])
+    return query
 
 
-def _remove_duplicates(entries, db):
-    for i, entry in enumerate(entries):
-        for from_db in db:
-            if _are_results_equal(entry, from_db):
-                return entries[:i]
-    return entries
+def _to_dict(result):
+    output = result._asdict()
+    output['created_at'] = output['created_at'].isoformat()
+    return output
 
 
 def scrap(url):
-    db = _read_db()
+    db = TinyDB(DB_FILENAME)
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     # Remove promoted section
@@ -145,10 +136,13 @@ def scrap(url):
     for li in soup.select('li.result'):
         results.append(_parse_result(li))
     # Skip those that are already there
-    results = _remove_duplicates(results, db)
-    db += results
-    _save_db(db)
-    return results
+    valid = []
+    for result in results:
+        in_db = db.search(_prepare_query(result))
+        if not in_db:
+            db.insert(_to_dict(result))
+            valid.append(result)
+    return valid
 
 
 def _pretty_print(string):
