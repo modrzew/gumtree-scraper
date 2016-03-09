@@ -27,5 +27,14 @@ def goto(eid):
     return redirect(result['url'], code=302)
 
 
+@app.route('/clear_all')
+def clear_all():
+    db = TinyDB(DB_FILENAME)
+    eids = [r.eid for r in db.search(Query().seen == False)]
+    db.update({'seen': True}, eids=eids)
+    db.close()
+    return 'OK'
+
+
 if __name__ == '__main__':
     app.run(debug=True)
