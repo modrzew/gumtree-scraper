@@ -2,10 +2,13 @@ from datetime import datetime, timedelta
 from collections import namedtuple
 import os.path
 import pickle
+import sys
+import time
 
 from bs4 import BeautifulSoup
 import dateutil
 import requests
+
 
 # CONFIGURABLE THINGS
 # Local equivalents of "minutes" and "hours"
@@ -20,6 +23,7 @@ Result = namedtuple(
 # Variables
 LAST_RUN_FILENAME = '.lastrun'
 DB_FILENAME = '.db'
+REFRESH_SECONDS = 300
 
 
 def _read_db():
@@ -147,8 +151,24 @@ def scrap(url):
     return results
 
 
+def _pretty_print(string):
+    sys.stdout.write('\r' + string)
+    sys.stdout.flush()
+
+
 if __name__ == '__main__':
     url = str(input('Enter URL: '))
-    results = scrap(url)
-    for result in results:
-        print(result)
+    while True:
+        try:
+            results = scrap(url)
+            if results:
+                for result in results:
+                    print(result)
+            else:
+                print('Nothing found.')
+            for i in range(REFRESH_SECONDS, 0, -1):
+                _pretty_print('Sleeping. Next refresh in {} seconds'.format(i))
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print('Exiting.')
+            break
