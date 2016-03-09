@@ -67,8 +67,8 @@ def _parse_price(value):
     parts = []
     for part in value:
         try:
-            part = int(part)
-            parts.append(str(part))
+            int(part)
+            parts.append(part)
         except ValueError:
             pass
     return int(''.join(parts))
@@ -89,8 +89,7 @@ def _parse_result(li):
     else:
         image_url = None
     # Description is split into 2: first part visible, second hidden
-    descriptions = li.select('div.description span')
-    description = ''.join(d.string for d in descriptions)
+    description = li.select_one('div.description').string.strip()
     # Remove calendar icon
     creation_date = li.select_one('.creation-date')
     creation_date.select_one('.icon-calendar').extract()

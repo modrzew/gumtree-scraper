@@ -1,4 +1,9 @@
-from flask import Flask, json, redirect
+from flask import (
+    Flask,
+    json,
+    redirect,
+    render_template,
+)
 from tinydb import TinyDB, Query
 
 
@@ -8,6 +13,18 @@ DB_FILENAME = '.db'
 app = Flask(__name__)
 
 
+@app.route('/')
+def main():
+    # TODO: this should be React, not Jinja
+    db = TinyDB(DB_FILENAME)
+    results = db.search(Query().seen == False)
+    db.close()
+    for result in results:
+        result['eid'] = result.eid
+    results.sort(key=lambda r: r['created_at'])
+    return render_template('list.html', results=results)
+
+
 @app.route('/api')
 def api():
     db = TinyDB(DB_FILENAME)
@@ -15,6 +32,7 @@ def api():
     db.close()
     for result in results:
         result['eid'] = result.eid
+    results.sort(key=lambda r: r['created_at'])
     return json.dumps(results)
 
 
