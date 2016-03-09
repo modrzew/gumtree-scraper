@@ -77,7 +77,11 @@ def _parse_price(value):
 def _parse_result(li):
     # Simple fields
     title = li.select_one('div.title a').string.strip()
-    price = _parse_price(li.select_one('div.price .value .amount').string)
+    price_container = li.select_one('div.price .value .amount')
+    if price_container:
+        price = _parse_price(price_container.string)
+    else:
+        price = None
     url = li.select_one('.title .href-link')['href']
     url = 'http://www.gumtree.pl' + url
     # Image - it may be there, it may not
@@ -113,6 +117,7 @@ def _to_dict(result):
     output = result._asdict()
     output['created_at'] = output['created_at'].isoformat()
     output['seen'] = False
+    output['starred'] = False
     return output
 
 

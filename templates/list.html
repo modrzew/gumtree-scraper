@@ -15,6 +15,7 @@
                         <th>Title, description</th>
                         <th>Price</th>
                         <th>Age</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -28,11 +29,14 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="{{ url_for('goto', eid=result.eid) }}" target="_blank"><b>{{ result.title }}</b></a><br>
+                                <i class="glyphicon glyphicon-star"></i> <a href="{{ url_for('goto', eid=result.eid) }}" target="_blank"><b>{{ result.title }}</b></a><br>
                                 <small>{{ result.description }}</small>
                             </td>
                             <td><b>{{ result.price }}</b></td>
                             <td>{{ result.created_at }}</td>
+                            <td>
+                                <a href="{{ url_for('seen', eid=result.eid) }}" class="btn btn-danger">Hide</a>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
