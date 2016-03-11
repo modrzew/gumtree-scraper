@@ -33,6 +33,7 @@ def api():
     db.close()
     for result in results:
         result['eid'] = result.eid
+        result['url'] = url_for('goto', eid=result.eid)
     results.sort(key=lambda r: r['created_at'])
     return json.dumps(results)
 
@@ -46,7 +47,7 @@ def goto(eid):
     return redirect(result['url'], code=302)
 
 
-@app.route('/star/<int:eid>')
+@app.route('/star/<int:eid>', methods=['POST'])
 def star(eid):
     db = TinyDB(DB_FILENAME)
     result = db.get(eid=eid)
@@ -55,7 +56,7 @@ def star(eid):
     return redirect(url_for('main'))
 
 
-@app.route('/seen/<int:eid>')
+@app.route('/seen/<int:eid>', methods=['POST'])
 def seen(eid):
     db = TinyDB(DB_FILENAME)
     db.update({'seen': True}, eids=[eid])
@@ -63,7 +64,7 @@ def seen(eid):
     return redirect(url_for('main'))
 
 
-@app.route('/clear_all')
+@app.route('/clear_all', methods=['POST'])
 def clear_all():
     db = TinyDB(DB_FILENAME)
     eids = [r.eid for r in db.search(Query().seen == False)]

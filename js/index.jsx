@@ -1,19 +1,57 @@
+import moment from 'moment';
 import React from 'react';
 import {render} from 'react-dom';
 
 
-class Result extends React.Component {
+class Star extends React.Component {
   render () {
+    if (this.props.starred) {
+      return <i className="glyphicon glyphicon-star"></i>;
+    }
+    return <i className="glyphicon glyphicon-star-empty"></i>;
+  }
+}
+
+
+class Result extends React.Component {
+  constructor () {
+    super();
+    this.state = {starred: false};
+  }
+
+  componentWillReceiveProps (props) {
+    this.setState({starred: props.starred});
+  }
+
+  toggleStar () {
+    // TODO: use external lib here, too tired to do that right now zzzzzzz
+    var r = new XMLHttpRequest();
+    r.open('POST', '/star/' + this.props.eid, true);
+    r.onreadystatechange = () => {
+      if (r.readyState !== 4 || r.status !== 200) {
+        return;
+      }
+      this.setState({starred: !this.state.starred});
+    };
+    r.send();
+  }
+
+  render () {
+    var then = moment(this.props.created_at);
     return (
       <tr>
         <td><img src={this.props.image_url}/></td>
         <td><b>{this.props.price}</b></td>
         <td>
-          <i className="glyphicon glyphicon-star"></i> <a href="/goto/{this.props.eid}" target="_blank"><b>{this.props.title}</b></a><br/>
+          <Star starred={this.state.starred} />
+          <a href={this.props.url} target="_blank"><b>{this.props.title}</b></a><br/>
           <small>{this.props.description}</small>
         </td>
-        <td>{this.props.created_at}</td>
-        <td>Actions</td>
+        <td>{then.fromNow(true)}</td>
+        <td>
+          <a href="#" onClick={this.toggleStar.bind(this)} className="btn btn-sm btn-primary">Star</a>
+          <a href="#" className="btn btn-sm btn-danger">Hide</a>
+        </td>
       </tr>
     );
   }
@@ -25,10 +63,10 @@ class TableHeader extends React.Component {
         <thead>
           <tr>
             <th>Image</th>
-            <th>Price</th>
+            <th className="col-xs-1">Price</th>
             <th>Title, description</th>
-            <th>Age</th>
-            <th>Actions</th>
+            <th className="col-xs-1">Age</th>
+            <th className="col-xs-1">Actions</th>
           </tr>
         </thead>
       );
