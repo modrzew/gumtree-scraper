@@ -6,49 +6,13 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 </head>
 <body>
-    <div id="app"></div>
     <div class="container-fluid">
-        {% if results %}
-            <table class="table table-striped table-bordered">
-                <thead>
-                    <tr>
-                        <th>Image</th>
-                        <th>Title, description</th>
-                        <th>Price</th>
-                        <th>Age</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for result in results %}
-                        <tr>
-                            <td>
-                                {% if result.image_url %}
-                                    <img src="{{ result.image_url }}">
-                                {% else %}
-                                    <img src="http://baconmockup.com/150/100/">
-                                {% endif %}
-                            </td>
-                            <td>
-                                <i class="glyphicon glyphicon-star"></i> <a href="{{ url_for('goto', eid=result.eid) }}" target="_blank"><b>{{ result.title }}</b></a><br>
-                                <small>{{ result.description }}</small>
-                            </td>
-                            <td><b>{{ result.price }}</b></td>
-                            <td>{{ result.created_at }}</td>
-                            <td>
-                                <a href="{{ url_for('seen', eid=result.eid) }}" class="btn btn-danger">Hide</a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-
-            <p class="text-center">
-                <a href="{{ url_for('clear_all') }}" class="btn btn-warning btn-lg">Mark all as seen</a>
-            </p>
-        {% else %}
-            <p class="text-center">No results! Make sure scraper is running in the background and wait a couple of minutes.</p>
-        {% endif %}
+        <div class="row">
+            <div class="table-responsive">
+                <div id="app"></div>
+            </div>
+        </div>
     </div>
+    <script src="{{ url_for('static', filename='bundle.js') }}"></script>
 </body>
 </html>
