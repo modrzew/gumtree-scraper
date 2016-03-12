@@ -159,19 +159,34 @@ class HideAllButton extends React.Component {
 class Table extends React.Component {
   constructor () {
     super();
-    this.state = {results: []};
+    this.state = {results: [], lastEid: null};
   }
 
-  componentDidMount () {
+  refresh () {
     var r = new XMLHttpRequest();
     r.open('GET', '/api', true);
     r.onreadystatechange = () => {
       if (r.readyState !== 4 || r.status !== 200) {
         return;
       }
-      this.setState({results: JSON.parse(r.responseText)});
+      var results = JSON.parse(r.responseText);
+      var lastEid = null;
+      for (var result of results) {
+        if (result.eid <= this.state.lastEid) {
+          continue;
+        }
+        this.state.results.push(result);
+        lastEid = result.eid;
+      }
+      this.setState({results: this.state.results, lastEid: lastEid});
+      // Reload every minute
+      setTimeout(this.refresh.bind(this), 60000);
     };
     r.send();
+  }
+
+  componentDidMount () {
+    this.refresh();
   }
 
   hideAll () {
