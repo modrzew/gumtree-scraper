@@ -116,7 +116,7 @@ def _prepare_query(result):
 def _to_dict(result):
     output = result._asdict()
     output['created_at'] = output['created_at'].isoformat()
-    output['seen'] = False
+    output['hidden'] = False
     output['starred'] = False
     return output
 

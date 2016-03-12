@@ -16,20 +16,13 @@ app = Flask(__name__)
 
 @app.route('/')
 def main():
-    # TODO: this should be React, not Jinja
-    db = TinyDB(DB_FILENAME)
-    results = db.search((Query().seen == False) | (Query().starred == True))
-    db.close()
-    for result in results:
-        result['eid'] = result.eid
-    results.sort(key=lambda r: r['created_at'])
-    return render_template('list.html', results=results)
+    return render_template('list.html')
 
 
 @app.route('/api')
 def api():
     db = TinyDB(DB_FILENAME)
-    results = db.search((Query().seen == False) | (Query().starred == True))
+    results = db.search((Query().hidden == False) | (Query().starred == True))
     db.close()
     for result in results:
         result['eid'] = result.eid
@@ -42,8 +35,6 @@ def api():
 def goto(eid):
     db = TinyDB(DB_FILENAME)
     result = db.get(eid=eid)
-    db.update({'seen': True}, eids=[eid])
-    db.close()
     return redirect(result['url'], code=302)
 
 
@@ -53,22 +44,23 @@ def star(eid):
     result = db.get(eid=eid)
     db.update({'starred': not result['starred']}, eids=[eid])
     db.close()
-    return redirect(url_for('main'))
+    return 'OK'
 
 
-@app.route('/seen/<int:eid>', methods=['POST'])
-def seen(eid):
+@app.route('/hide/<int:eid>', methods=['POST'])
+def hide(eid):
     db = TinyDB(DB_FILENAME)
-    db.update({'seen': True}, eids=[eid])
+    result = db.get(eid=eid)
+    db.update({'hidden': not result['hidden']}, eids=[eid])
     db.close()
-    return redirect(url_for('main'))
+    return 'OK'
 
 
 @app.route('/clear_all', methods=['POST'])
 def clear_all():
     db = TinyDB(DB_FILENAME)
-    eids = [r.eid for r in db.search(Query().seen == False)]
-    db.update({'seen': True}, eids=eids)
+    eids = [r.eid for r in db.search(Query().hidden == False)]
+    db.update({'hidden': True}, eids=eids)
     db.close()
     return redirect(url_for('main'))
 
