@@ -117,6 +117,7 @@ def _to_dict(result):
     output = result._asdict()
     output['created_at'] = output['created_at'].isoformat()
     output['hidden'] = False
+    output['seen'] = False
     output['starred'] = False
     return output
 

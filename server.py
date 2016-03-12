@@ -35,6 +35,7 @@ def api():
 def goto(eid):
     db = TinyDB(DB_FILENAME)
     result = db.get(eid=eid)
+    db.update({'seen': True}, eids=[eid])
     return redirect(result['url'], code=302)
 
 

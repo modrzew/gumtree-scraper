@@ -6,9 +6,32 @@ import {render} from 'react-dom';
 class Star extends React.Component {
   render () {
     if (this.props.starred) {
-      return <i className="glyphicon glyphicon-star" onClick={this.props.onClick}></i>;
+      return <i className="glyphicon glyphicon-star" onClick={this.props.onClick}/>;
     }
-    return <i className="glyphicon glyphicon-star-empty" onClick={this.props.onClick}></i>;
+    return <i className="glyphicon glyphicon-star-empty" onClick={this.props.onClick}/>;
+  }
+}
+
+
+class Image extends React.Component {
+  constructor(props) {
+    super();
+    this.state = {src: props.src || 'https://baconmockup.com/150/100/'}
+  }
+
+  render () {
+    return (
+      <div className="wrapper">
+        <div className="starred-indicator">
+          <i className="glyphicon glyphicon-star"/>
+        </div>
+        <div className="actions">
+          <Star starred={this.props.starred} onClick={this.props.starCallback}/>
+          {this.props.starred ? '' : <i className="glyphicon glyphicon-remove" onClick={this.props.hideCallback}/>}
+        </div>
+        <img src={this.state.src} />
+      </div>
+    );
   }
 }
 
@@ -16,10 +39,13 @@ class Star extends React.Component {
 class Result extends React.Component {
   constructor (props) {
     super();
-    this.state = {starred: props.starred, hidden: false};
+    this.state = {starred: props.starred, hidden: false, seen: props.seen};
   }
 
   hide () {
+    if (this.state.starred) {
+      return;
+    }
     var r = new XMLHttpRequest();
     r.open('POST', '/hide/' + this.props.eid, true);
     r.onreadystatechange = () => {
@@ -32,7 +58,6 @@ class Result extends React.Component {
   }
 
   star () {
-    // TODO: use external lib here, too tired to do that right now zzzzzzz
     var r = new XMLHttpRequest();
     r.open('POST', '/star/' + this.props.eid, true);
     r.onreadystatechange = () => {
@@ -44,22 +69,31 @@ class Result extends React.Component {
     r.send();
   }
 
+  markAsSeen () {
+    this.setState({seen: true});
+  }
+
   render () {
     var then = moment(this.props.created_at);
     return (
       <tr className={this.state.hidden ? 'hidden-result' : ''}>
-        <td><img src={this.props.image_url}/></td>
-        <td><b>{this.props.price}</b></td>
-        <td>
-          <Star starred={this.state.starred} onClick={this.star.bind(this)} />
-          <a href={this.props.url} target="_blank"><b>{this.props.title}</b></a><br/>
-          <small>{this.props.description}</small>
+        <td className={this.state.starred ? 'image starred' : 'image'}>
+          <Image
+            src={this.props.image_url}
+            starred={this.state.starred}
+            hidden={this.state.hidden}
+            hideCallback={this.hide.bind(this)}
+            starCallback={this.star.bind(this)} />
+        </td>
+        <td className="price"><b>{this.props.price}</b></td>
+        <td className="description">
+          <h3>
+            {this.state.seen ? <i className="glyphicon glyphicon-ok" title="Already seen" /> : ''}{' '}
+            <a href={this.props.url} target="_blank" onClick={this.markAsSeen.bind(this)}><b>{this.props.title}</b></a>
+          </h3>
+          <p><small>{this.props.description}</small></p>
         </td>
         <td>{then.fromNow(true)}</td>
-        <td>
-          <a onClick={this.star.bind(this)} className="btn btn-sm btn-primary">Star</a>
-          {(this.state.starred ? '' : <a onClick={this.hide.bind(this)} className="btn btn-sm btn-danger">Hide</a>)}
-        </td>
       </tr>
     );
   }
@@ -74,7 +108,6 @@ class TableHeader extends React.Component {
             <th className="col-xs-1">Price</th>
             <th>Title, description</th>
             <th className="col-xs-1">Age</th>
-            <th className="col-xs-1">Actions</th>
           </tr>
         </thead>
       );

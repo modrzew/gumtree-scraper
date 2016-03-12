@@ -8,6 +8,58 @@
         .hidden-result {
             opacity: 0.15;
         }
+        td.price {
+            text-align: center;
+            font-size: 2em;
+            vertical-align: middle !important;
+        }
+
+        td.image {
+            vertical-align: middle !important;
+        }
+        td.image .wrapper {
+            position: relative;
+        }
+        td.image .actions {
+            background: #000;
+            opacity: 0.8;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            display: none;
+            z-index: 20;
+            text-align: center;
+            box-sizing: border-box;
+            padding: 20px 0;
+            color: #fff;
+            font-size: 4em;
+        }
+        td.image img {
+            z-index: 10;
+        }
+        td.image .wrapper:hover .actions {
+            display: block;
+        }
+        td.image .actions i {
+            cursor: pointer;
+        }
+        td.image .starred-indicator {
+            display: none;
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-size: 2em;
+            color: #ff0;
+            text-shadow: 0 0 5px #000;
+        }
+        td.image.starred .starred-indicator {
+            display: block;
+        }
+
+        td.description h3 {
+            font-size: 1.2em;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
