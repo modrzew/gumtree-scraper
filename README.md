@@ -7,11 +7,14 @@ with their interface (though it didn't matter to my girlfriend, who was
 searching with me), and also disappointed by fact that Gumtree removed built-in
 RSS feeds, I decided to write simple scraper.
 
+![animation](docs/sample.gif)
+
 ## Features
 
 - prettier list of offers (when compared with Gumtree's)
 - ability to hide or star particular offer
 	- starred offer can't be hidden until it's unstarred
+- global seen mark to indicate which offers were already clicked
 - offers are only *added*; when something gets removed from Gumtree, it's still
   here
 - it's *your* database, and you can do whatever you want with it
