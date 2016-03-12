@@ -42,6 +42,15 @@ class Result extends React.Component {
     this.state = {starred: props.starred, hidden: false, seen: props.seen};
   }
 
+  componentWillReceiveProps (props) {
+    // The only thing that may come from its parent is callback after clicking
+    // "Hide all" button. So we don't actually need to check anything, but we
+    // don't want to hide starred offers.
+    if (props.hidden && !this.state.starred) {
+      this.setState({hidden: true});
+    }
+  }
+
   hide () {
     if (this.state.starred) {
       return;
@@ -128,6 +137,25 @@ class TableBody extends React.Component {
 }
 
 
+class HideAllButton extends React.Component {
+  hideAll () {
+    var r = new XMLHttpRequest();
+    r.open('POST', '/hide/all', true);
+    r.onreadystatechange = () => {
+      if (r.readyState !== 4 || r.status !== 200) {
+        return;
+      }
+      this.props.callback();
+    };
+    r.send();
+  }
+
+  render () {
+    return <a className="btn btn-lg btn-warning" onClick={this.hideAll.bind(this)}>Hide all unstarred</a>;
+  }
+}
+
+
 class Table extends React.Component {
   constructor () {
     super();
@@ -146,12 +174,31 @@ class Table extends React.Component {
     r.send();
   }
 
+  hideAll () {
+    for (var result of this.state.results) {
+      if (!result.starred) {
+        result.hidden = true;
+      }
+    }
+    this.setState({results: this.state.results});
+  }
+
   render () {
-    return (
-      <table className="table table-striped table-bordered table-responsive">
-        <TableHeader/>
-        <TableBody results={this.state.results} />
-      </table>
+    return (this.state.results.length ?
+      <div>
+        <table className="table table-striped table-bordered table-responsive">
+          <TableHeader/>
+          <TableBody results={this.state.results} />
+        </table>
+        <p className="text-center">
+          <HideAllButton callback={this.hideAll.bind(this)} />
+        </p>
+      </div>
+      :
+      <p className="text-center">
+        No results yet! Make sure that scrapper is running in the background
+        and wait for a couple of minutes.
+      </p>
     );
   }
 }
