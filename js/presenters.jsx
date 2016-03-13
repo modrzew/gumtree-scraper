@@ -1,4 +1,5 @@
 import React from 'react';
+import {Result} from './containers.jsx';
 
 
 class Star extends React.Component {

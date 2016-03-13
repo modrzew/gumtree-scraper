@@ -3,7 +3,7 @@ import React from 'react';
 import {Image, TableHeader, TableBody} from './presenters.jsx';
 
 
-class Result extends React.Component {
+export class Result extends React.Component {
   constructor (props) {
     super();
     this.state = {starred: props.starred, hidden: false, seen: props.seen};
