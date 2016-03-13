@@ -1,9 +1,10 @@
 import moment from 'moment';
 import React from 'react';
-import {Image, TableHeader, TableBody} from './components.jsx';
+import {Image, Table} from './components.jsx';
 
 
 export class Result extends React.Component {
+  // TODO: split this component into ResultContainer and Result
   constructor (props) {
     super();
     this.state = {starred: props.starred, hidden: false, seen: props.seen};
@@ -76,7 +77,7 @@ export class Result extends React.Component {
 }
 
 
-class HideAllButton extends React.Component {
+export class HideAllButton extends React.Component {
   hideAll () {
     var r = new XMLHttpRequest();
     r.open('POST', '/hide/all', true);
@@ -95,12 +96,7 @@ class HideAllButton extends React.Component {
 }
 
 
-export class Table extends React.Component {
-  constructor () {
-    super();
-    this.state = {results: [], lastEid: null};
-  }
-
+export class TableContainer extends React.Component {
   refresh () {
     var r = new XMLHttpRequest();
     r.open('GET', '/api', true);
@@ -108,16 +104,7 @@ export class Table extends React.Component {
       if (r.readyState !== 4 || r.status !== 200) {
         return;
       }
-      var results = JSON.parse(r.responseText);
-      var lastEid = null;
-      for (var result of results) {
-        if (result.eid <= this.state.lastEid) {
-          continue;
-        }
-        this.state.results.push(result);
-        lastEid = result.eid;
-      }
-      this.setState({results: this.state.results, lastEid: lastEid});
+      this.props.onNewResults(JSON.parse(r.responseText))
       // Reload every minute
       setTimeout(this.refresh.bind(this), 60000);
     };
@@ -128,31 +115,7 @@ export class Table extends React.Component {
     this.refresh();
   }
 
-  hideAll () {
-    for (var result of this.state.results) {
-      if (!result.starred) {
-        result.hidden = true;
-      }
-    }
-    this.setState({results: this.state.results});
-  }
-
   render () {
-    return (this.state.results.length ?
-      <div>
-        <table className="table table-striped table-bordered table-responsive">
-          <TableHeader/>
-          <TableBody results={this.state.results} />
-        </table>
-        <p className="text-center">
-          <HideAllButton callback={this.hideAll.bind(this)} />
-        </p>
-      </div>
-      :
-      <p className="text-center">
-        No results yet! Make sure that scrapper is running in the background
-        and wait for a couple of minutes.
-      </p>
-    );
+    return <Table {...this.props} />;
   }
 }

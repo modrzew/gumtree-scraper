@@ -1,5 +1,5 @@
 import React from 'react';
-import {Result} from './containers.jsx';
+import {Result, HideAllButton} from './containers.jsx';
 
 
 class Star extends React.Component {
@@ -50,6 +50,7 @@ export class TableHeader extends React.Component {
     }
 }
 
+
 export class TableBody extends React.Component {
     render () {
       var rows = this.props.results.map((r) => 
@@ -61,4 +62,26 @@ export class TableBody extends React.Component {
         </tbody>
       );
     }
+}
+
+
+export class Table extends React.Component {
+  render () {
+    return (this.props.results.length ?
+      <div>
+        <table className="table table-striped table-bordered table-responsive">
+          <TableHeader/>
+          <TableBody results={this.props.results} />
+        </table>
+        <p className="text-center">
+          <HideAllButton callback={this.props.onHideAll} />
+        </p>
+      </div>
+      :
+      <p className="text-center">
+        No results yet! Make sure that scrapper is running in the background
+        and wait for a couple of minutes.
+      </p>
+    );
+  }
 }
