@@ -43,7 +43,7 @@ RSS feeds, I decided to write simple scraper.
 Pretty straightforward. virtualenv or pyenv (or both) are recommended.
 
 ```
-pip install -r requirements
+pip install -r requirements.txt
 npm install
 ./node_modules/webpack/bin/webpack.js -d
 ```
@@ -73,8 +73,9 @@ a couple of endpoints for manipulating entries.
 
 #### Client (React)
 
-A couple of components residing in `js/index.jsx`. I didn't find enough reasons
-to go overboard with JS modules, thus everything is in single file.
+Main entry point is in `js/index.jsx` - that's also where application's store
+is defined. I followed split between presentation and container components,
+which are (respectively) in `js/components.jsx` and `js/containers.jsx`.
 
 ## OK, looks great... but why?
 
