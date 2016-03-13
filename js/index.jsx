@@ -10,7 +10,6 @@ function Reducer (state, action) {
     return {results: [], lastEid: null};
   }
   let newState;
-  console.log(action);
   switch (action.type) {
     case 'STAR':
       newState = {lastEid: state.lastEid};
