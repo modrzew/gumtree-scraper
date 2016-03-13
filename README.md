@@ -26,13 +26,14 @@ RSS feeds, I decided to write simple scraper.
 
 ### Requirements
 
-- Python 3.5
-- npm
+- Python 3.5 (for running everything)
+- npm (for compiling frontend assets)
 
 ### Notable libraries used
 
 - Flask
 - React
+- Redux
 - [TinyDB](http://tinydb.readthedocs.org/) (yup, it's not threadsafe, so you
   may consider switching to other DB provider before going live - but for us
   it was sufficient)
@@ -89,7 +90,7 @@ sharing features - we used Trello to manage our results, but we had to make
 extra effort to ensure we're not looking through an offer twice (thus wasting
 time).
 
-And on top of that - it was a fun side project.
+And on top of that - it was a fun side project to mess with React and Redux.
 
 ## License
 

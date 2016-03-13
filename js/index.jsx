@@ -10,6 +10,7 @@ function Reducer (state, action) {
     return {results: [], lastEid: null};
   }
   let newState;
+  console.log(action);
   switch (action.type) {
     case 'STAR':
       newState = {lastEid: state.lastEid};
@@ -25,6 +26,15 @@ function Reducer (state, action) {
       newState.results = state.results.map((result) => {
         if (result.eid === action.eid && !result.starred) {
           result.hidden = !result.hidden;
+        }
+        return result;
+      });
+      return newState;
+    case 'SEEN':
+      newState = {lastEid: state.lastEid};
+      newState.results = state.results.map((result) => {
+        if (result.eid === action.eid) {
+          result.seen = true;
         }
         return result;
       });
@@ -68,7 +78,8 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     onStar: (eid) => dispatch({type: 'STAR', eid: eid}),
-    onHide: (eid) => dispatch({type: 'STAR', eid: eid}),
+    onHide: (eid) => dispatch({type: 'HIDE', eid: eid}),
+    onSeen: (eid) => dispatch({type: 'SEEN', eid: eid}),
     onHideAll: () => {
       dispatch({type: 'HIDE_ALL'})
     },
