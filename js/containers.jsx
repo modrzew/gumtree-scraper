@@ -1,6 +1,6 @@
 import moment from 'moment';
 import React from 'react';
-import {Image, TableHeader, TableBody} from './presenters.jsx';
+import {Image, TableHeader, TableBody} from './components.jsx';
 
 
 export class Result extends React.Component {
