@@ -53,7 +53,7 @@ def hide_all():
     db = TinyDB(DB_FILENAME)
     eids = [
         r.eid for r in db.search(
-            (Query().hidden == False) | (Query().starred == False)
+            (Query().hidden == False) & (Query().starred == False)
         )
     ]
     db.update({'hidden': True}, eids=eids)
