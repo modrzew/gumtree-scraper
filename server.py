@@ -27,7 +27,7 @@ def api():
     for result in results:
         result['eid'] = result.eid
         result['url'] = url_for('goto', eid=result.eid)
-    results.sort(key=lambda r: r['created_at'])
+    results.sort(key=lambda r: r['created_at'], reverse=True)
     return json.dumps(results)
 
 
@@ -57,6 +57,19 @@ def hide_all():
         )
     ]
     db.update({'hidden': True}, eids=eids)
+    db.close()
+    return 'OK'
+
+
+@app.route('/show/all', methods=['GET', 'POST'])
+def show_all():
+    db = TinyDB(DB_FILENAME)
+    eids = [
+        r.eid for r in db.search(
+            (Query().hidden == True)
+        )
+    ]
+    db.update({'hidden': False}, eids=eids)
     db.close()
     return 'OK'
 

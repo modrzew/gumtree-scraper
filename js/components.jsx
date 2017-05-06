@@ -38,7 +38,7 @@ export class Image extends React.Component {
 
 export class Result extends React.Component {
   render () {
-    var then = moment(this.props.created_at);
+    var then = moment(this.props.created_at).add(10, 'hours');
     return (
       <tr className={this.props.hidden ? 'hidden-result' : ''}>
         <td className={this.props.starred ? 'image starred' : 'image'}>
@@ -102,6 +102,19 @@ export class TableBody extends React.Component {
 
 
 export class Table extends React.Component {
+
+  showAll () {
+    var r = new XMLHttpRequest();
+    r.open('POST', '/show/all', true);
+    r.onreadystatechange = () => {
+      if (r.readyState !== 4 || r.status !== 200) {
+        return;
+      }
+      window.location = window.location
+    };
+    r.send();
+  }
+
   render () {
     return (this.props.results.length ?
       <div>
@@ -118,10 +131,13 @@ export class Table extends React.Component {
         </p>
       </div>
       :
-      <p className="text-center">
-        No results yet! Make sure that scrapper is running in the background
-        and wait for a couple of minutes.
-      </p>
+      <div>
+        <p className="text-center">
+          No results yet! Make sure that scrapper is running in the background
+          and wait for a couple of minutes.
+        </p>
+        <a className="btn btn-lg btn-warning" onClick={this.showAll.bind(this)}>Show all</a>
+      </div>
     );
   }
 }

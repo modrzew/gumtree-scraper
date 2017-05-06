@@ -11,8 +11,8 @@ import requests
 
 # CONFIGURABLE THINGS
 # Local equivalents of "minutes" and "hours"
-TIMEDELTA_HOURS = ('godz', 'hour')
-TIMEDELTA_MINS = ('min',)
+TIMEDELTA_HOURS = ('hour', 'hours')
+TIMEDELTA_MINS = ('minute','minutes')
 
 # Structures
 Result = namedtuple(
@@ -40,71 +40,82 @@ def _write_last_run(last_run=None):
     with open(LAST_RUN_FILENAME, 'w') as f:
         f.write(last_run.isoformat())
 
-
 def _parse_date(value):
     """Converts relative time to absolute
 
     e.g. '43 min temu' => datetime()
     """
     # I assume Polish locale
-    parts = value.strip().split(maxsplit=1)
-    amount = int(parts[0])
-    for hour_part in TIMEDELTA_HOURS:
-        if hour_part in parts[1]:
-            delta = timedelta(hours=amount)
-            break
-    else:
-        for minute_part in TIMEDELTA_MINS:
-            if minute_part in parts[1]:
-                delta = timedelta(minutes=amount)
+    parts = value.strip().split(' ', 2)
+    try:
+        amount = int(parts[0])
+        for hour_part in TIMEDELTA_HOURS:
+            if hour_part in parts[1]:
+                delta = timedelta(hours=amount)
                 break
-    return datetime.now() - delta
-
-
-def _parse_price(value):
-    """Converts '2\xa000 zł' into integer"""
-    value = value.strip().split()
-    parts = []
-    for part in value:
-        try:
-            int(part)
-            parts.append(part)
-        except ValueError:
-            pass
-    return int(''.join(parts))
-
+        else:
+            for minute_part in TIMEDELTA_MINS:
+                if minute_part in parts[1]:
+                    delta = timedelta(minutes=amount)
+                    break
+        return datetime.utcnow() - delta
+    except:
+        return None
 
 def _parse_result(li):
     # Simple fields
-    title = li.select_one('div.title a').string.strip()
-    price_container = li.select_one('div.price .value .amount')
-    if price_container:
-        price = _parse_price(price_container.string)
-    else:
-        price = None
-    url = li.select_one('.title .href-link')['href']
-    url = 'http://www.gumtree.pl' + url
-    # Image - it may be there, it may not
-    if 'pictures' in li['class']:
-        if 'data-src' in li.select_one('.thumb img').attrs:
-            image_url = li.select_one('.thumb img')['data-src']
-        else:
-            image_url = li.select_one('.thumb img')['src']
-    else:
-        image_url = None
+    title = li.select_one('div > div > div.ad-listing__details > div > h6 > a > span').string.strip()
+    # print title
+    title_date = li.select_one('div > div > div.ad-listing__details > div.ad-listing__extra-info > div.ad-listing__date').string.strip()
+    created_at = _parse_date(title_date)
+
+    price_span = li.select_one('div > div > div.ad-listing__details > div > div > div > span').contents
+
+    price = None
+    try:
+        price_item = price_span[2].replace(",", "").strip()
+        intPrice = float(price_item)
+        price = price_span[2].strip()
+    except Exception as err:
+        pass
+    
+    # print price
+
+    url = li.select_one('div > div > div.ad-listing__details > div > h6 > a')['href']
+    url = 'https://www.gumtree.com.au' + url
+
+    image_url = None
+    try:
+        image_url = li.select_one('div > div > div.ad-listing__thumb-container > a > span > img')['src']
+    except:
+        pass
+    # print url
+    # # Image - it may be there, it may not
+    # if 'pictures' in li['class']:
+    #     if 'data-src' in li.select_one('.thumb img').attrs:
+    #         image_url = li.select_one('.thumb img')['data-src']
+    #     else:
+    #         image_url = li.select_one('.thumb img')['src']
+    # else:
+    #     image_url = None
     # Description is split into 2: first part visible, second hidden
-    description = li.select_one('div.description').string.strip()
-    # Remove calendar icon
-    creation_date = li.select_one('.creation-date')
-    creation_date.select_one('.icon-calendar').extract()
-    created_at_raw = creation_date.select_one('span').string
-    created_at = _parse_date(created_at_raw)
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    
+    description = soup.select_one('#ad-description-details')
+    # print description
+
+    if created_at is None:
+        date_str = soup.select_one('.ad-details__ad-attribute-value').string.strip()
+        created_at = datetime.strptime(date_str, "%d/%m/%Y")
+        # print created_at
+
     return Result(
         title=title,
         price=price,
         url=url,
         image_url=image_url,
-        description=description,
+        description=str(description),
         created_at=created_at,
     )
 
@@ -126,14 +137,12 @@ def scrap(url):
     db = TinyDB(DB_FILENAME)
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
-    # Remove promoted section
-    soup.select_one('div.view.top-listings').extract()
-    # Remove reply window
-    soup.select_one('li.result.reply').extract()
-    # Find all results
+
     results = []
-    for li in soup.select('li.result'):
+    count = 0
+    for li in soup.select('.srp__recent-ads .ad-listing__item'):
         results.append(_parse_result(li))
+        count+=1
     # Skip those that are already there - single result found will break out
     # of the loop
     valid = []
@@ -152,7 +161,7 @@ def _pretty_print(string):
 
 
 if __name__ == '__main__':
-    url = str(input('Enter URL: '))
+    url = str(raw_input('Enter URL: '))
     while True:
         try:
             results = scrap(url)
