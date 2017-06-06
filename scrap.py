@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from collections import namedtuple
+import re
 import sys
 import time
 
@@ -42,10 +43,17 @@ def _write_last_run(last_run=None):
 
 
 def _parse_date(value):
-    """Converts relative time to absolute
+    """Converts relative time or day date to absolute
 
-    e.g. '43 min temu' => datetime()
+    e.g. '43 min temu' => datetime() OR '5-06' => datetime()
     """
+    # Check for day-month pattern
+    day_month_text = re.match("^(\d{1,2})-(\d{2})$", value)
+    if day_month_text:
+        day = int(day_month_text.group(1))
+        month = int(day_month_text.group(2))
+        return datetime(datetime.now().year, month, day)
+
     # I assume Polish locale
     parts = value.strip().split(maxsplit=1)
     amount = int(parts[0])
